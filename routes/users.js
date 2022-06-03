@@ -4,14 +4,40 @@ const cors = require('cors');
 
 router.use(cors());
 
-/* GET users listing. */
 router.get('/', (req, res) => {
+  req.app.locals.con.connect(function(err){
+    if(err){
+      console.log(err);
+    }
+
+    let sql = `SHOW TABLES`;
+
+    req.app.locals.con.query(sql, function(err, result){
+      if(err){
+        console.log(err);
+      }
+
+      let lists = [];
+
+      for (let i = 0; i < result.length; i++) {
+        console.log(result[i].Tables_in_todolist);
+        lists.push(result[i].Tables_in_todolist);
+      }
+
+      res.json(lists);
+    })
+  })
+})
+
+router.post('/list', (req, res) => {
   req.app.locals.con.connect(function(err){
     if(err){
       console.log("err", err);
     }
 
-    let sql = `SELECT * FROM todos`;
+    let data = req.body[0].list;
+
+    let sql = `SELECT * FROM ${data}`;
 
     req.app.locals.con.query(sql, function(err, result){
       if(err){
@@ -21,28 +47,25 @@ router.get('/', (req, res) => {
       let todos = [];
 
       for (let i = 0; i < result.length; i++) {
-        
         console.log("result", result[i].todo);
         todos.push(result[i].todo);
       }
       
       res.json(todos); 
     })
-
   })
 })
 
 router.post('/', (req, res) => {
-  console.log("hej! <3", req.body.todo);
-
   req.app.locals.con.connect(function(err){ 
     if(err){
       console.log("err", err);
     }
 
-    let data = req.body.todo;
+    let list = req.body[0].list;
+    let data = req.body[1].todo;
 
-    let sql = `INSERT INTO todos (todo) VALUES ("${data}")`;
+    let sql = `INSERT INTO ${list} (todo) VALUES ("${data}")`;
  
     req.app.locals.con.query(sql, function(err, result){
       if(err){
@@ -56,21 +79,43 @@ router.post('/', (req, res) => {
 }); 
 
 router.post('/delete', (req, res) => {
-  console.log(req.body[0].todo);
   req.app.locals.con.connect(function(err){
     if(err){
       console.log("err", err);
     }
 
-    let data = req.body[0].todo;
+    let list = req.body[0].list;
+    let data = req.body[1].todo;
 
-    let sql = `DELETE FROM todos WHERE todo="${data}"`;
+    let sql = `DELETE FROM ${list} WHERE todo="${data}"`;
 
     req.app.locals.con.query(sql, function(err, result){
       if(err){
         console.log(err);
       }
       console.log(result); 
+    })
+  })
+})
+
+router.post('/add', (req, res) => {
+  console.log(req.body.list);
+  req.app.locals.con.connect(function(err){ 
+    if(err){
+      console.log("err", err);
+    }
+
+    let data = req.body.list;
+
+    let sql = `CREATE TABLE ${data} (id int, todo varchar(128))`;
+ 
+    req.app.locals.con.query(sql, function(err, result){
+      if(err){
+        console.log(err);
+      }
+
+      console.log("result", result);
+      res.send("hej"); 
     })
   })
 })
