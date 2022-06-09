@@ -46,6 +46,7 @@ router.post('/list', (req, res) => {
 
       let todos = [];
 
+      console.log(result.length);
       for (let i = 0; i < result.length; i++) {
         console.log("result", result[i].todo);
         todos.push(result[i].todo);
@@ -88,6 +89,23 @@ router.post('/delete', (req, res) => {
     let data = req.body[1].todo;
 
     let sql = `DELETE FROM ${list} WHERE todo="${data}"`;
+
+    req.app.locals.con.query(sql, function(err, result){
+      if(err){
+        console.log(err);
+      }
+      console.log(result); 
+    })
+  })
+})
+
+router.delete('/delete/:list', (req, res) => {
+  req.app.locals.con.connect(function(err){
+    if(err){
+      console.log("err", err);
+    }
+
+    let sql = `DROP TABLE ${req.params.list}`;
 
     req.app.locals.con.query(sql, function(err, result){
       if(err){
